@@ -1,6 +1,12 @@
 #!/usr/bin/env ruby
 require 'fileutils'
 
+# prettify paths for voicemail messages, talkies and lip sync files
+# for example:
+# 'ogg/nrqsnhtcvm.ogg' becomes 'ogg/voicemail/4513 - Gary Winnick.ogg'
+# set to false if you want the original filenames
+PRETTY_PATHS = true
+
 # unbreakable XOR encryption
 KEY = "&\xB9\xC9\xC5#2\xD0\x8C\xFA\x10,\xCC\xA8\xA2X\xFA".unpack('C*').map { |x| x ^ 0x69 }
 
@@ -82,18 +88,20 @@ file_index_offset = 0
     filename = get_string(index[file_index_offset + i * 33 + 31 + 5, 4], string_table)
     offset = get_string(index[file_index_offset + i * 33 + 31 + 14 , 4], string_table).to_i
     size = get_string(index[file_index_offset + i * 33 + 31 + 23, 4], string_table).to_i
-    if filename == 'PhoneBookNames.txt'
+    if PRETTY_PATHS && filename == 'PhoneBookNames.txt'
         decoded = decode(File::binread(ARGV.first, size, offset).bytes, size & 0xff).pack('C*')
         decoded.split("\n").map { |x| x.split("\t") }.each do |entry|
             phone_book[entry.first] = entry
         end
     end
     path = "#{filename.split('.').last}/#{filename}"
-    if filename =~ /^[a-z]{10}\.ogg$/
-        token = filename.sub('.ogg', '')
-        path = "#{filename.split('.').last}/voicemail/#{phone_book[token][1]} - #{phone_book[token][3].gsub('/', '_')}.ogg" 
+    if PRETTY_PATHS
+        if filename =~ /^[a-z]{10}\.ogg$/
+            token = filename.sub('.ogg', '')
+            path = "#{filename.split('.').last}/voicemail/#{phone_book[token][1]} - #{phone_book[token][3].gsub('/', '_')}.ogg" 
+        end
+        path = "#{filename.split('.').last}/#{filename.split('_').first}/#{filename}" if filename =~ /^[A-Z]+_\d+\./
     end
-    path = "#{filename.split('.').last}/#{filename.split('_').first}/#{filename}" if filename =~ /^[A-Z]+_\d+\./
     if dest_dir
         path = File::join(dest_dir, path)
         FileUtils::mkpath(File::dirname(path))
