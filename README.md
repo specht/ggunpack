@@ -75,7 +75,6 @@ This will produce a lot of files:
 1,9M	./ogg/STARSHIPMAN
 74M	./ogg/RAY
 4,7M	./ogg/SANDY
-88K	./ogg/voicemail/2271 - Jens A. Tkotz 
 159M	./ogg/voicemail
 20M	./ogg/FRANKLIN
 3,0M	./ogg/CHET
