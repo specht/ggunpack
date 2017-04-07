@@ -105,7 +105,8 @@ file_index_offset = 0
                     File::open(File::join(dest_dir, 'Thimbleweed Park Library Books.html'), 'w') do |f|
                         f.puts '<html>'
                         f.puts '<meta charset="utf-8"/>'
-                        f.puts "<head><style type='text/css'>body { font-family: mono; font-size: 10pt; }</style></head>"
+                        f.puts "<head><style type='text/css'>body { font-family: mono; font-size: 9pt; }"
+                        f.puts "hr { border: 0; border-top: 0.5px solid #aaa;} </style></head>"
                         f.puts '<body>'
                         lines = decoded.split("\n")
                         lines.shift
