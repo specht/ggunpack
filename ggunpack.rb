@@ -160,7 +160,7 @@ file_index_offset = 0
             token = filename.sub('.ogg', '')
             path = "#{filename.split('.').last}/voicemail/#{phone_book[token][1]} - #{phone_book[token][3].gsub('/', '_')}.ogg" 
         end
-        if filename =~ /^[A-Z0-9]+_\d+\./
+        if filename =~ /^[A-Z0-9]+_\d+\.ogg$/
             path = "#{filename.split('.').last}/#{filename.split('_').first}/#{filename}" 
             id = filename.split('.').first.split('_').last
             if talkies && talkies[id]
