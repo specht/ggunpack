@@ -7,6 +7,10 @@ require 'fileutils'
 # set to false if you want the original filenames
 PRETTY_PATHS = true
 
+# write a HTML file with all library books to the output directory,
+# look for 'Thimbleweed Park Library Books.html'
+WRITE_BOOK_READER = true
+
 # unbreakable XOR encryption
 KEY = "&\xB9\xC9\xC5#2\xD0\x8C\xFA\x10,\xCC\xA8\xA2X\xFA".unpack('C*').map { |x| x ^ 0x69 }
 
@@ -88,10 +92,34 @@ file_index_offset = 0
     filename = get_string(index[file_index_offset + i * 33 + 31 + 5, 4], string_table)
     offset = get_string(index[file_index_offset + i * 33 + 31 + 14 , 4], string_table).to_i
     size = get_string(index[file_index_offset + i * 33 + 31 + 23, 4], string_table).to_i
-    if PRETTY_PATHS && filename == 'PhoneBookNames.txt'
-        decoded = decode(File::binread(ARGV.first, size, offset).bytes, size & 0xff).pack('C*')
-        decoded.split("\n").map { |x| x.split("\t") }.each do |entry|
-            phone_book[entry.first] = entry
+    if WRITE_BOOK_READER || PRETTY_PATHS
+        if filename == 'LibraryBookText_en.txt' || filename == 'PhoneBookNames.txt'
+            decoded = decode(File::binread(ARGV.first, size, offset).bytes, size & 0xff).pack('C*')
+            if filename == 'PhoneBookNames.txt'
+                decoded.split("\n").map { |x| x.split("\t") }.each do |entry|
+                    phone_book[entry.first] = entry
+                end
+            elsif filename == 'LibraryBookText_en.txt'
+                if dest_dir
+                    File::open(File::join(dest_dir, 'Thimbleweed Park Library Books.html'), 'w') do |f|
+                        f.puts '<html>'
+                        f.puts "<head><style type='text/css'>body { font-family: mono; font-size: 10pt; }</style></head>"
+                        f.puts '<body>'
+                        lines = decoded.split("\n")
+                        lines.shift
+                        lines.map { |x| x.split("\t") }.each do |entry|
+                            f.puts "<h2>#{entry[2]}</h2>"
+                            f.puts "<p><i>by #{entry[3]}</i></p>"
+                            f.puts "<p>#{entry[4].gsub('|', '<br />')}</p>"
+                            f.puts "<p style='text-align: center;'>~</p>"
+                            f.puts "<p>#{entry[5].gsub('|', '<br />')}</p>"
+                            f.puts "<hr />"
+                        end
+                        f.puts '</body>'
+                        f.puts '</html>'
+                    end
+                end
+            end
         end
     end
     path = "#{filename.split('.').last}/#{filename}"
@@ -106,9 +134,11 @@ file_index_offset = 0
         path = File::join(dest_dir, path)
         FileUtils::mkpath(File::dirname(path))
         puts path
-        File::open(path, 'w') do |f|
-            decoded = decode(File::binread(ARGV.first, size, offset).bytes, size & 0xff).pack('C*')
-            f.write decoded
+        unless File::exists?(path)
+            File::open(path, 'w') do |f|
+                decoded = decode(File::binread(ARGV.first, size, offset).bytes, size & 0xff).pack('C*')
+                f.write decoded
+            end
         end
     else
         puts path
