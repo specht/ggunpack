@@ -1,10 +1,14 @@
 #!/usr/bin/env ruby
 require 'fileutils'
 require 'cgi'
+require 'yaml'
 
 # prettify paths for voicemail messages, talkies and lip sync files
 # for example:
 # 'ogg/nrqsnhtcvm.ogg' becomes 'ogg/voicemail/4513 - Gary Winnick.ogg'
+# also for the talkies, the line will be included in the filename
+# if you first unpack ThimbleweedPark.ggpack1 and then ThimbleweedPark.ggpack2
+# for example: 'DELORES_22152 - Got it! XOR!.ogg'
 # set to false if you want the original filenames
 PRETTY_PATHS = true
 
@@ -87,6 +91,10 @@ def get_string(a, string_table)
 end
 
 phone_book = {}
+talkies = nil
+if dest_dir && File::exists?(File::join(dest_dir, 'talkies.yaml'))
+    talkies = YAML::load(File::read(File::join(dest_dir, 'talkies.yaml')))
+end
 
 file_index_offset = 0
 (0...file_count).each do |i|
@@ -94,7 +102,7 @@ file_index_offset = 0
     offset = get_string(index[file_index_offset + i * 33 + 31 + 14 , 4], string_table).to_i
     size = get_string(index[file_index_offset + i * 33 + 31 + 23, 4], string_table).to_i
     if WRITE_BOOK_READER || PRETTY_PATHS
-        if filename == 'LibraryBookText_en.txt' || filename == 'PhoneBookNames.txt'
+        if filename == 'LibraryBookText_en.txt' || filename == 'PhoneBookNames.txt' || filename == 'ThimbleweedText_en.tsv'
             decoded = decode(File::binread(ARGV.first, size, offset).bytes, size & 0xff).pack('C*')
             if filename == 'PhoneBookNames.txt'
                 decoded.split("\n").map { |x| x.split("\t") }.each do |entry|
@@ -124,6 +132,25 @@ file_index_offset = 0
                         f.puts '</html>'
                     end
                 end
+            elsif filename == 'ThimbleweedText_en.tsv'
+                if dest_dir
+                    File::open(File::join(dest_dir, 'talkies.yaml'), 'w') do |f|
+                        h = {}
+                        lines = decoded.split("\n")
+                        lines.shift
+                        lines.map { |x| x.split("\t") }.each do |entry|
+                            if entry.size > 1
+                                line = entry[1]
+                                line.gsub!('\\"', '"')
+                                line.gsub!('/', ' ')
+                                line.gsub!('.', ' ')
+                                line.gsub!(/\{.+\}/, '')
+                                h[entry.first] = line.strip
+                            end
+                        end
+                        f.puts h.to_yaml
+                    end
+                end
             end
         end
     end
@@ -133,7 +160,13 @@ file_index_offset = 0
             token = filename.sub('.ogg', '')
             path = "#{filename.split('.').last}/voicemail/#{phone_book[token][1]} - #{phone_book[token][3].gsub('/', '_')}.ogg" 
         end
-        path = "#{filename.split('.').last}/#{filename.split('_').first}/#{filename}" if filename =~ /^[A-Z]+_\d+\./
+        if filename =~ /^[A-Z0-9]+_\d+\./
+            path = "#{filename.split('.').last}/#{filename.split('_').first}/#{filename}" 
+            id = filename.split('.').first.split('_').last
+            if talkies && talkies[id]
+                path = "#{filename.split('.').last}/#{filename.split('_').first}/#{filename.sub('.ogg', '')} - #{talkies[id]}.ogg" 
+            end
+        end
     end
     if dest_dir
         path = File::join(dest_dir, path)
