@@ -110,11 +110,13 @@ file_index_offset = 0
                         lines = decoded.split("\n")
                         lines.shift
                         lines.map { |x| x.split("\t") }.each do |entry|
+                            f.puts "<div style='page-break-inside: avoid;'>"
                             f.puts "<h2>#{entry[2]}</h2>"
                             f.puts "<p><i>by #{entry[3]}</i></p>"
                             f.puts "<p>#{CGI.escapeHTML(entry[4]).gsub('|', '<br />')}</p>"
                             f.puts "<p style='text-align: center;'>~</p>"
                             f.puts "<p>#{CGI.escapeHTML(entry[5]).gsub('|', '<br />')}</p>"
+                            f.puts "</div>"
                             f.puts "<hr />"
                         end
                         f.puts '</body>'
