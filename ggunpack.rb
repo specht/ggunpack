@@ -44,20 +44,12 @@ dest_dir = ARGV[dest_index + 1] if dest_index && dest_index + 1 < ARGV.size
     
 def decode(buffer, seed)
     result = []
-    r11 = seed
-    r10 = 0
-    r12 = buffer.size
-    (0...r12).each do |r9|
-        r8 = r10
-        r8 ^= buffer[r9]
-        r8 &= 0xff
-        rdx = r9 & 0xf
-        r10 += 0x6d
-        r10 &= 0xff
-        r8 ^= r11
-        r8 ^= KEY[rdx]
-        result << r8
-        r11 ^= r8
+    x = 0
+    buffer.each_with_index do |byte_in, i|
+        byte_out = x ^ byte_in ^ seed ^ KEY[i & 0xf]
+        x = (x + 0x6d) & 0xff
+        seed ^= byte_out
+        result << byte_out
     end
     result
 end
