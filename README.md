@@ -1,6 +1,8 @@
 # Thimbleweed Park file extraction tool
 
-This script extracts all files from the Thimbleweed Park pack files. To run the script, you need the game data files included in the game. 
+This script extracts all files from the Thimbleweed Park pack files. It also compiles a HTML file with all the books in the Mansion Mansion library. 
+
+To run the script, you need the game data files included in the game. 
 
 In case you haven't done so already, go and buy the game on [Steam](http://store.steampowered.com/app/569860), 
 [GOG](https://www.gog.com/game/thimbleweed_park), 
