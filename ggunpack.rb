@@ -1,5 +1,4 @@
 #!/usr/bin/env ruby
-
 require 'fileutils'
 
 # unbreakable XOR encryption
@@ -9,12 +8,24 @@ if ARGV.size < 1
     puts "Thimbleweed Park file extraction tool"
     puts '-' * 37
     puts
-    puts "This script will extract all files from the packfile to a directory called haul."
+    puts "This script will list and extract all files from the given packfile."
     puts
-    puts "Usage:    ./ggunpack.rb [path to packfile]"
-    puts "Example:  ./ggunpack.rb ~/GOG Games/Thimbleweed Park/game/ThimbleweedPark.ggpack1"
+    puts "Usage:    ./ggunpack.rb <path to packfile> [--destination <path>]"
+    puts
+    puts "List files:"
+    puts "  ./ggunpack.rb ~/GOG Games/Thimbleweed Park/game/ThimbleweedPark.ggpack1"
+    puts
+    puts "Extract files:"
+    puts "  ./ggunpack.rb ~/GOG Games/Thimbleweed Park/game/ThimbleweedPark.ggpack1 --destination haul"
+    puts
+    puts "Options:"
+    puts "  --destination   specify a destination directory"
     exit(1)
 end
+
+dest_dir = nil
+dest_index = ARGV.index('--destination')
+dest_dir = ARGV[dest_index + 1] if dest_index && dest_index + 1 < ARGV.size
     
 def decode(buffer, seed)
     result = []
@@ -64,20 +75,34 @@ def get_string(a, string_table)
     string_table[a.pack('C*').unpack('V').first]
 end
 
+phone_book = {}
+
 file_index_offset = 0
 (0...file_count).each do |i|
     filename = get_string(index[file_index_offset + i * 33 + 31 + 5, 4], string_table)
     offset = get_string(index[file_index_offset + i * 33 + 31 + 14 , 4], string_table).to_i
     size = get_string(index[file_index_offset + i * 33 + 31 + 23, 4], string_table).to_i
-    path = "haul/#{filename.split('.').last}/#{filename}"
-    if filename =~ /[a-z]{10}\.ogg/
-        path = "haul/#{filename.split('.').last}/voicemail/#{filename}"
+    if filename == 'PhoneBookNames.txt'
+        decoded = decode(File::binread(ARGV.first, size, offset).bytes, size & 0xff).pack('C*')
+        decoded.split("\n").map { |x| x.split("\t") }.each do |entry|
+            phone_book[entry.first] = entry
+        end
     end
-    FileUtils::mkpath(File::dirname(path))
-    puts path
-    encrypted = File::binread(ARGV.first, size, offset).bytes
-    decrypted = decode(encrypted, size & 0xff)
-    File::open(path, 'w') do |f|
-        f.write decrypted.pack('C*')
+    path = "#{filename.split('.').last}/#{filename}"
+    if filename =~ /^[a-z]{10}\.ogg$/
+        token = filename.sub('.ogg', '')
+        path = "#{filename.split('.').last}/voicemail/#{phone_book[token][1]} - #{phone_book[token][3].gsub('/', '_')}.ogg" 
+    end
+    path = "#{filename.split('.').last}/#{filename.split('_').first}/#{filename}" if filename =~ /^[A-Z]+_\d+\./
+    if dest_dir
+        path = File::join(dest_dir, path)
+        FileUtils::mkpath(File::dirname(path))
+        puts path
+        File::open(path, 'w') do |f|
+            decoded = decode(File::binread(ARGV.first, size, offset).bytes, size & 0xff).pack('C*')
+            f.write decoded
+        end
+    else
+        puts path
     end
 end
