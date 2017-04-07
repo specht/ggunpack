@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 require 'fileutils'
+require 'cgi'
 
 # prettify paths for voicemail messages, talkies and lip sync files
 # for example:
@@ -103,6 +104,7 @@ file_index_offset = 0
                 if dest_dir
                     File::open(File::join(dest_dir, 'Thimbleweed Park Library Books.html'), 'w') do |f|
                         f.puts '<html>'
+                        f.puts '<meta charset="utf-8"/>'
                         f.puts "<head><style type='text/css'>body { font-family: mono; font-size: 10pt; }</style></head>"
                         f.puts '<body>'
                         lines = decoded.split("\n")
@@ -110,9 +112,9 @@ file_index_offset = 0
                         lines.map { |x| x.split("\t") }.each do |entry|
                             f.puts "<h2>#{entry[2]}</h2>"
                             f.puts "<p><i>by #{entry[3]}</i></p>"
-                            f.puts "<p>#{entry[4].gsub('|', '<br />')}</p>"
+                            f.puts "<p>#{CGI.escapeHTML(entry[4]).gsub('|', '<br />')}</p>"
                             f.puts "<p style='text-align: center;'>~</p>"
-                            f.puts "<p>#{entry[5].gsub('|', '<br />')}</p>"
+                            f.puts "<p>#{CGI.escapeHTML(entry[5]).gsub('|', '<br />')}</p>"
                             f.puts "<hr />"
                         end
                         f.puts '</body>'
