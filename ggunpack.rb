@@ -17,7 +17,8 @@ PRETTY_PATHS = true
 WRITE_BOOK_READER = true
 
 # unbreakable XOR encryption
-KEY = "&\xB9\xC9\xC5#2\xD0\x8C\xFA\x10,\xCC\xA8\xA2X\xFA".unpack('C*').map { |x| x ^ 0x69 }
+LOOK_BEHIND_YOU_A_THREE_HEADED_MONKEY = "\x1d\x91\xee\xff\x05\x16\xfc\xba\xc71\x00\xfa\x8b\x8ec\xd8".unpack('C*')
+KEY = 'RANSOME_THE_JERK'.unpack('C*').map.with_index { |x, i| x ^ LOOK_BEHIND_YOU_A_THREE_HEADED_MONKEY[i] }
 
 if ARGV.size < 1
     puts "Thimbleweed Park file extraction tool"
