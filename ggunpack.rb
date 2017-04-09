@@ -3,6 +3,14 @@ require 'fileutils'
 require 'cgi'
 require 'yaml'
 
+# ------------------------------------------------------------------------------------------------
+# NOTE: You need Thimbleweed Park to run this script. Buy the game if you haven't done so already!
+# ------------------------------------------------------------------------------------------------
+# Steam:    http://store.steampowered.com/app/569860
+# GOG:      https://www.gog.com/game/thimbleweed_park
+# XBox:     https://www.microsoft.com/en-US/store/p/Thimbleweed-Park/9NBLGGH40DCM
+# AppStore: https://itunes.apple.com/us/app/thimbleweed-park/id1214713872?mt=12
+
 # prettify paths for voicemail messages, talkies and lip sync files
 # for example:
 # 'ogg/nrqsnhtcvm.ogg' becomes 'ogg/voicemail/4513 - Gary Winnick.ogg'
