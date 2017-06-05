@@ -74,8 +74,9 @@ strings_offset = 31 + file_count * 33 - 2
 
 number = 0
 i = 0
-while number != 0xffffffff
+while true
     number = index[strings_offset + i * 4, 4].pack('C*').unpack('V').first
+    break if number == 0xffffffff
     s = ''
     while index[number] != 0 && number < index.size
         s += index[number].chr
